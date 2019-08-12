@@ -1,4 +1,4 @@
-package com.example.my.test.movielist;
+package com.example.my.test.movielist.adapters;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -7,17 +7,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.my.test.movielist.R;
 import com.example.my.test.movielist.data.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
-    private ArrayList<Movie> movies;
+    private List<Movie> movies;
+    private OnPosterClickListener onPosterClickListener;
+    private OnReachEndListener onReachEndListener;
 
     public MovieAdapter() {
         movies = new ArrayList<>();
+    }
+
+    public interface OnPosterClickListener {
+        void onPosterClick(int position);
+    }
+
+    public interface OnReachEndListener {
+        void onReachEnd();
     }
 
     @NonNull
@@ -29,6 +41,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder movieViewHolder, int i) {
+        if (movies.size() >= 20 && i > movies.size() - 4 && onReachEndListener != null) {
+            onReachEndListener.onReachEnd();
+        }
         Movie movie = movies.get(i);
         Picasso.get().load(movie.getPosterPath()).into(movieViewHolder.imageViewSmallPoster);
     }
@@ -45,20 +60,41 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         public MovieViewHolder(@NonNull View itemView) {
             super(itemView);
             imageViewSmallPoster = itemView.findViewById(R.id.imageViewSmallPoster);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onPosterClickListener != null) {
+                        onPosterClickListener.onPosterClick(getAdapterPosition());
+                    }
+                }
+            });
         }
     }
 
-    public void setMovies(ArrayList<Movie> movies) {
+    public void setOnPosterClickListener(OnPosterClickListener onPosterClickListener) {
+        this.onPosterClickListener = onPosterClickListener;
+    }
+
+    public void setOnReachEndListener(OnReachEndListener onReachEndListener) {
+        this.onReachEndListener = onReachEndListener;
+    }
+
+    public void clear() {
+        this.movies.clear();
+        notifyDataSetChanged();
+    }
+
+    public void setMovies(List<Movie> movies) {
         this.movies = movies;
         notifyDataSetChanged();
     }
 
-    public void addMovies(ArrayList<Movie> movies) {
+    public void addMovies(List<Movie> movies) {
         this.movies.addAll(movies);
         notifyDataSetChanged();
     }
 
-    public ArrayList<Movie> getMovies() {
+    public List<Movie> getMovies() {
         return movies;
     }
 }
